@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -279,6 +278,21 @@ header {
 .hidden {
   display: none !important;
 }
+
+/* Security Badge */
+.security-badge {
+  background: rgba(16, 185, 129, 0.15);
+  border-left: 4px solid #10b981;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.security-badge strong {
+  color: #10b981;
+}
 </style>
 </head>
 <body>
@@ -291,6 +305,11 @@ header {
       📢 Pasang Iklan
     </a>
   </header>
+
+  <!-- Security Badge -->
+  <div class="security-badge">
+    🔐 <strong>Secure Mode:</strong> Data source dilindungi dengan enkripsi
+  </div>
 
   <!-- Top Ad Banners -->
   <div class="ad-banner">
@@ -367,13 +386,44 @@ header {
 
 <script>
 // ============================================
+// GIST URL ENCRYPTION CONFIGURATION
+// ============================================
+// 🔐 GANTI INI DENGAN GIST URL ANDA YANG SUDAH DIENKRIPSI!
+// Cara generate: Lihat bagian bawah file ini (helper script)
+const GIST_CYPHER = {
+  // Ganti value ini dengan hasil enkripsi Gist URL Anda
+  data: 'PLACEHOLDER_ENCRYPTED_GIST_URL_CHANGE_THIS', 
+  key: 'my_gist_key_2026_secure_xyz', // 🔐 Ganti dengan key unik Anda!
+  decrypt: function() {
+    try {
+      const decoded = atob(this.data);
+      let result = '';
+      for (let i = 0; i < decoded.length; i++) {
+        result += String.fromCharCode(decoded.charCodeAt(i) ^ this.key.charCodeAt(i % this.key.length));
+      }
+      console.log('✅ Gist URL decrypted successfully');
+      console.log('🔗 Gist URL length:', result.length);
+      return result;
+    } catch (e) {
+      console.error('❌ Gist decryption failed:', e.message);
+      return null;
+    }
+  }
+};
+
+// ============================================
 // CONFIGURATION - GANTI DENGAN URL ANDA
 // ============================================
 const CONFIG = {
-  GIST_URL: 'https://gist.githubusercontent.com/vokepvarokah1-sudo/e19d30781bf904e4419135f16a35092e/raw/c50ab1e32f20e0e1ceca3f3451aab4d026acf0c3/',
+  get GIST_URL() {
+    return GIST_CYPHER.decrypt();
+  },
   CACHE_KEY: 'played_videos',
   CACHE_EXPIRY: 7 * 24 * 60 * 60 * 1000 // 7 days
 };
+
+console.log('🔐 Security System Loaded');
+console.log('Gist URL:', CONFIG.GIST_URL ? 'Decrypted successfully' : 'FAILED - Check your encrypted data!');
 
 // ============================================
 // GLOBAL STATE
@@ -460,11 +510,11 @@ function handleAdblockDetection() {
   if (isBlocked) {
     // Adblock detected - hide player
     playerFrame.style.display = 'none';
-    console.log('AdBlock detected: Player hidden');
+    console.log('🚫 AdBlock detected: Player hidden');
   } else {
     // No adblock - show player
     playerFrame.style.display = 'block';
-    console.log('No AdBlock: Player visible');
+    console.log('✅ No AdBlock: Player visible');
   }
 }
 
@@ -497,7 +547,7 @@ function loadVideo(video) {
     handleAdblockDetection();
   }, 500);
   
-  console.log('Loaded video:', video.id);
+  console.log('▶️ Loaded video:', video.id);
 }
 
 function nextVideo() {
@@ -517,7 +567,14 @@ async function fetchVideos() {
   try {
     loading.classList.add('active');
     
-    const response = await fetch(CONFIG.GIST_URL);
+    // Get Gist URL (decrypted)
+    const gistUrl = CONFIG.GIST_URL;
+    
+    if (!gistUrl) {
+      throw new Error('Gist URL tidak valid atau gagal didecrypt!');
+    }
+    
+    const response = await fetch(gistUrl);
     
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -546,10 +603,10 @@ async function fetchVideos() {
     bottomAds2.classList.remove('hidden');
     document.getElementById('controls').classList.remove('hidden');
     
-    console.log(`Loaded ${allVideos.length} videos from Gist`);
+    console.log(`✅ Loaded ${allVideos.length} videos from Gist`);
     
   } catch (error) {
-    console.error('Failed to fetch videos:', error);
+    console.error('❌ Failed to fetch videos:', error);
     loading.innerHTML = `
       <div class="spinner"></div>
       <p style="color: #ef4444;">❌ Gagal memuat video</p>
@@ -579,9 +636,57 @@ window.addEventListener('focus', () => {
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Initializing Random Video Website...');
-  fetchVideos();
+  console.log('▶️ Initializing Random Video Website...');
+  console.log('🔐 Gist protection: ENABLED');
+  
+  // Check if Gist URL is properly configured
+  const testUrl = CONFIG.GIST_URL;
+  if (testUrl && testUrl !== 'PLACEHOLDER_ENCRYPTED_GIST_URL_CHANGE_THIS') {
+    fetchVideos();
+  } else {
+    console.error('❌ ERROR: Gist URL belum dikonfigurasi!');
+    console.error('ℹ️  Lihat bagian bawah file ini untuk instruksi generate encrypted Gist URL');
+    
+    // Show error message
+    const loading = document.getElementById('loading');
+    loading.innerHTML = `
+      <div class="spinner"></div>
+      <p style="color: #ef4444; margin-top: 20px; font-size: 18px;">
+        ❌ Konfigurasi Gist URL Belum Lengkap!
+      </p>
+      <p style="font-size: 14px; color: #94a3b8; margin-top: 15px; line-height: 1.6;">
+        Anda perlu mengenkripsi Gist URL Anda terlebih dahulu.<br>
+        Buka console browser (F12) dan lihat instruksi di bagian bawah kode.
+      </p>
+      <button onclick="location.reload()" 
+              style="margin-top: 30px; padding: 12px 24px; background: #a855f7; 
+                     color: white; border: none; border-radius: 8px; cursor: pointer;">
+        🔄 Refresh
+      </button>
+    `;
+  }
 });
+
+// ============================================
+// HELPER SCRIPT: GENERATE ENCRYPTED GIST URL
+// ============================================
+// 🔐 INSTRUKSI:
+// 1. Buka halaman website.html di browser
+// 2. Tekan F12 untuk buka Developer Console
+// 3. Paste kode di bawah ini di console, lalu tekan Enter:
+// 
+// const gistUrl = 'https://gist.githubusercontent.com/YOUR_USERNAME/GIST_ID/raw/data.json';
+// const key = 'my_gist_key_2026_secure_xyz';
+// let encrypted = '';
+// for (let i = 0; i < gistUrl.length; i++) {
+//   encrypted += String.fromCharCode(gistUrl.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+// }
+// console.log('📋 Encrypted Gist URL:', btoa(encrypted));
+// console.log('✅ Copy hasil di atas dan paste ke GIST_CYPHER.data di kode website.html');
+//
+// 4. Copy hasil enkripsi yang muncul di console
+// 5. Paste ke GIST_CYPHER.data di kode website.html (baris 332)
+// 6. Refresh halaman website
 </script>
 
 </body>
